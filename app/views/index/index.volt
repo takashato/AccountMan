@@ -5,6 +5,8 @@
     <link rel="stylesheet" href="node_modules/datatables.net-bs/css/dataTables.bootstrap.min.css">
     <!-- bootstrap datepicker -->
     <link rel="stylesheet" href="node_modules/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="node_modules/select2/dist/css/select2.min.css">
     <style>
         .selected {
             background: #cccccc !important;
@@ -23,6 +25,17 @@
     <div class="box">
         <!-- /.box-header -->
         <div class="box-body">
+            <div class="row">
+                <div class="form-group">
+                    <div class="col-sm-4">
+                        <select class="form-control select2" id="department-filter" multiple="multiple"
+                                data-placeholder="Filter by Department(s)"
+                                style="width: 100%;">
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <br/>
             <table id="data-table" class="table table-bordered table-striped" style="width:100%">
                 <thead>
                 <tr>
@@ -31,6 +44,8 @@
                     <th>E-mail</th>
                     <th>Full-name</th>
                     <th>Gender</th>
+                    <th>Department</th>
+                    <th>DepartmentId</th>
                     <th>Birthday</th>
                     <th>Create date</th>
                     <th>Last update date</th>
@@ -45,6 +60,8 @@
                     <th>E-mail</th>
                     <th>Full-name</th>
                     <th>Gender</th>
+                    <th>Department</th>
+                    <th>DepartmentId</th>
                     <th>Birthday</th>
                     <th>Create date</th>
                     <th>Last update date</th>
@@ -58,7 +75,9 @@
                     </button>
                 </div>
                 <div style="float: right;">
-                    <button class="btn btn-info" id="edit-btn" data-toggle="modal" data-target="#modal-edit"><i class="fa fa-edit"></i> Edit</button>
+                    <button class="btn btn-info" id="edit-btn" data-toggle="modal" data-target="#modal-edit"><i
+                                class="fa fa-edit"></i> Edit
+                    </button>
                     <button class="btn btn-danger" id="delete-btn" data-toggle="modal" data-target="#modal-delete"><i
                                 class="fa fa-remove"></i> Delete
                     </button>
@@ -108,8 +127,13 @@
                         <div class="form-group">
                             <label>Gender:</label>
                             <select class="form-control" name="gender">
-                                <option value="0">Female</option>
                                 <option value="1">Male</option>
+                                <option value="0">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Department:</label>
+                            <select name="departmentId" class="form-control select2" id="department-add-list" style="width: 100%;">
                             </select>
                         </div>
                         <div class="form-group">
@@ -156,32 +180,42 @@
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-user-secret"></i></span>
                             <input type="text" name="id" class="form-control" id="field-id" required>
-                        </div><br/>
+                        </div>
+                        <br/>
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-user"></i></span>
-                            <input type="text" name="username" class="form-control" placeholder="Username" id="field-username" required>
+                            <input type="text" name="username" class="form-control" placeholder="Username"
+                                   id="field-username" required>
                         </div>
                         <br/>
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-key"></i></span>
-                            <input type="password" name="password" class="form-control" placeholder="Password (leaving blank means not change)" id="field-password">
+                            <input type="password" name="password" class="form-control"
+                                   placeholder="Password (leaving blank means not change)" id="field-password">
                         </div>
                         <br/>
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
-                            <input type="email" name="email" class="form-control" placeholder="E-mail" id="field-email" required>
+                            <input type="email" name="email" class="form-control" placeholder="E-mail" id="field-email"
+                                   required>
                         </div>
                         <br/>
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-user-circle"></i></span>
-                            <input type="text" name="fullname" class="form-control" placeholder="Full-name" id="field-fullname" required>
+                            <input type="text" name="fullname" class="form-control" placeholder="Full-name"
+                                   id="field-fullname" required>
                         </div>
                         <br/>
                         <div class="form-group">
                             <label>Gender:</label>
                             <select class="form-control" name="gender" id="field-gender">
-                                <option value="0">Female</option>
                                 <option value="1">Male</option>
+                                <option value="0">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Department:</label>
+                            <select name="departmentId" class="form-control select2" id="department-edit-list" style="width: 100%;">
                             </select>
                         </div>
                         <div class="form-group">
@@ -190,7 +224,8 @@
                                 <div class="input-group-addon">
                                     <i class="fa fa-calendar"></i>
                                 </div>
-                                <input type="text" name="birthday" class="form-control pull-right datepicker" id="field-birthday" required>
+                                <input type="text" name="birthday" class="form-control pull-right datepicker"
+                                       id="field-birthday" required>
                             </div>
                             <!-- /.input group -->
                         </div>
@@ -233,46 +268,86 @@
 
 {% endblock %}
 {% block js %}
+    <!-- Select2 -->
+    <script src="node_modules/select2/dist/js/select2.full.min.js"></script>
     <!-- DataTables -->
     <script src="node_modules/datatables.net/js/jquery.dataTables.min.js"></script>
     <script src="node_modules/datatables.net-bs/js/dataTables.bootstrap.min.js"></script>
     <script src="node_modules/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
     <!-- JS -->
     <script>
-        $(document).ready(function () {
-            let selectedCells;
+        function loadDepartments() {
+            $.ajax({
+                method: "POST",
+                url: "api/department/load",
+                data: {},
+                dataType: 'json'
+            }).done(function (res) {
+                $('#department-filter').empty();
+                $('#department-add-list').empty();
+                $('#department-edit-list').empty();
+                for (let i = 0; i < res.length; i++) {
+                    $('#department-filter').append(new Option(res[i].name, res[i].id));
+                    $('#department-add-list').append(new Option(res[i].name, res[i].id));
+                    $('#department-edit-list').append(new Option(res[i].name, res[i].id));
+                }
+            });
+        }
 
-            if (window.location.hash == "#modal-add") {
+        $(document).ready(async function () {
+            let selectedCells;
+            let selectedRow;
+
+            await loadDepartments();
+
+            if (window.location.hash === "#modal-add") {
                 $('#modal-add').modal('show');
             }
+
+            $('.select2').select2();
 
             $('.datepicker').datepicker({
                 autoclose: true,
                 format: "dd/mm/yyyy"
             });
 
+            $("#department-filter").on('change', function () {
+                table.ajax.reload();
+            });
+
             let table = $('#data-table').DataTable({
                 "processing": true,
                 "serverSide": true,
-                "ajax": "api/load"
+                "columnDefs": [
+                    {
+                        "targets": [ 6 ],
+                        "visible": false,
+                        "searchable": false
+                    }],
+                "ajax": {
+                    url: "api/account/load",
+                    data: function (d) {
+                        d.extra_search = $("#department-filter").val();
+                    }
+                }
             });
 
             $('#data-table tbody').on('click', 'tr', function () {
                 if ($(this).hasClass('selected')) {
                     $(this).removeClass('selected');
-                }
-                else {
+                } else {
                     table.$('tr.selected').removeClass('selected');
                     $(this).addClass('selected');
                     selectedCells = $(this).children("td");
                 }
+                selectedRow = this;
             });
 
             /* Save new account */
             $('#add-new-account-form').on('submit', function () {
                 $.ajax({
                     method: "POST",
-                    url: "api/add",
+                    url: "api/account/add",
                     data: $('#add-new-account-form').serializeArray(),
                     dataType: 'json'
                 }).done(function (res) {
@@ -301,7 +376,7 @@
             $('#confirm-delete-btn').on('click', function () {
                 $.ajax({
                     method: "POST",
-                    url: "api/delete",
+                    url: "api/account/delete",
                     data: {id: $('#id-to-be-deleted').val()},
                     dataType: 'json'
                 }).done((res) => {
@@ -325,7 +400,9 @@
                 $('#field-email').val(selectedCells.eq(2).text());
                 $('#field-fullname').val(selectedCells.eq(3).text());
                 $('#field-gender').val(selectedCells.eq(4).text() === "Male" ? 1 : 0);
-                $('#field-birthday').val(selectedCells.eq(5).text());
+                console.log(table.row(this));
+                /*$('#department-edit-list').val(table.data(this).data).trigger('change');*/
+                $('#field-birthday').val(selectedCells.eq(6).text());
             });
 
             $('#edit-account-form').on('submit', function () {
@@ -333,7 +410,7 @@
                 toPost.id = $("#field-id").val();
                 $.ajax({
                     method: "POST",
-                    url: "api/edit",
+                    url: "api/account/edit",
                     data: toPost,
                     dataType: 'json'
                 }).done(function (res) {

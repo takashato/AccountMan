@@ -1,6 +1,6 @@
 <?php
 
-class ApiController extends \Phalcon\Mvc\Controller
+class AccountApiController extends \Phalcon\Mvc\Controller
 {
     public function indexAction()
     {
@@ -10,20 +10,27 @@ class ApiController extends \Phalcon\Mvc\Controller
     public function loadAction()
     {
         $this->view->disable();
-        $columns = ['id', 'username', 'email', 'fullname', 'gender', 'birthday', 'createDate', 'lastUpdateDate'];
-        $par = [
-            'columns' => $columns,
-            'offset' => $this->request->get('start'),
-            'limit' => $this->request->get('length')
-        ];
-        $binding = [];
+        $columns = ['id', 'username', 'email', 'fullname', 'gender', 'departmentId', 'birthday', 'createDate', 'lastUpdateDate'];
+
+        $accounts = Account::query()
+            ->limit($this->request->get('length'), $this->request->get('start'))
+            ->orderBy($columns[$this->request->get('order')[0]['column']] . ' ' . $this->request->get('order')[0]['dir']);
+
+        // Filter
+        $filter = $this->request->get("extra_search");
+        if (isset($filter)) {
+            $accounts = $accounts->inWhere('departmentId', $filter);
+        }
+
+        // Search username
         $searchText = $this->request->get('search')['value'];
         if ($searchText) {
-            $par['conditions'] = 'username LIKE :search_val:';
-            $binding['search_val'] = "%{$searchText}%";
+            $accounts = $accounts->andWhere('username LIKE :search_val:')
+                -> bind(['search_val' => "%{$searchText}%"], true);
         }
-        $par['bind'] = $binding;
-        $accounts = Account::find($par);
+
+        $accounts = $accounts->execute();
+
         $resultSet = [];
         foreach ($accounts as $account) {
             array_push($resultSet, [
@@ -32,6 +39,8 @@ class ApiController extends \Phalcon\Mvc\Controller
                 $account->email,
                 $account->fullname,
                 $account->gender == 1 ? "Male" : "Female",
+                $account->department->name,
+                $account->department->id,
                 (new DateTime($account->birthday))->format("d/m/Y"),
                 (new DateTime($account->createDate))->format("H:i:s d/m/Y"),
                 (new DateTime($account->lastUpdateDate))->format("H:i:s d/m/Y")
@@ -53,26 +62,33 @@ class ApiController extends \Phalcon\Mvc\Controller
         $email = $this->request->getPost('email');
         $fullname = $this->request->getPost('fullname');
         $gender = $this->request->getPost('gender');
+        $departmentId = $this->request->getPost('departmentId');
         $birthday = $this->request->getPost('birthday');
 
-        if (!isset($username, $password, $email, $fullname, $gender, $birthday)) {
+        if (!isset($username, $password, $email, $fullname, $gender, $departmentId, $birthday)) {
             echo json_encode(['success' => false, 'msg' => 'Please fill in all required fields.']);
         } else if (Account::count(['username = :username: OR email = :email:', 'bind' => ['username' => $username, 'email' => $email]]) >= 1) {
             echo json_encode(['success' => false, 'msg' => 'Username / email is not available.']);
         } else if ($gender != 0 && $gender != 1) {
             echo json_encode(['success' => false, 'msg' => 'Gender is not valid.']);
         } else {
-            $account = new Account();
-            $account->username = $username;
-            $account->password = $this->security->hash($password);
-            $account->email = $email;
-            $account->fullname = $fullname;
-            $account->gender = $gender;
-            $account->birthday = DateTime::createFromFormat("d/m/Y", $birthday)->format("Y-m-d");
-            if ($account->save()) {
-                echo json_encode(['success' => true]);
+            $department = Department::findFirst($departmentId);
+            if(!$department) {
+                echo json_encode(['success' => false, 'msg' => 'Department is not valid.']);
             } else {
-                echo json_encode(['success' => false, 'msg' => 'Can not save account.']);
+                $account = new Account();
+                $account->username = $username;
+                $account->password = $this->security->hash($password);
+                $account->email = $email;
+                $account->fullname = $fullname;
+                $account->gender = $gender;
+                $account->departmentId = $department->id;
+                $account->birthday = DateTime::createFromFormat("d/m/Y", $birthday)->format("Y-m-d");
+                if ($account->save()) {
+                    echo json_encode(['success' => true]);
+                } else {
+                    echo json_encode(['success' => false, 'msg' => 'Can not save account.']);
+                }
             }
         }
     }

@@ -2,7 +2,6 @@
 
 class Account extends \Phalcon\Mvc\Model
 {
-
     /**
      *
      * @var integer
@@ -63,6 +62,7 @@ class Account extends \Phalcon\Mvc\Model
     {
         $this->setSchema("accman");
         $this->setSource("account");
+        $this->hasOne('departmentId', 'Department', 'id', ['alias' => 'department']);
     }
 
     /**

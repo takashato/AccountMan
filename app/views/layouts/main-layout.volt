@@ -63,6 +63,16 @@
                         <li><a href="./#modal-add"><i class="fa fa-user-plus"></i> Create new account</a></li>
                     </ul>
                 </li>
+                <li class="treeview">
+                    <a href="#"><i class="fa fa-list"></i> <span>Departments</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="./department"><i class="fa fa-list"></i> Manage</a></li>
+                    </ul>
+                </li>
             </ul>
             <!-- /.sidebar-menu -->
         </section>

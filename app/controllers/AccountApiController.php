@@ -118,20 +118,24 @@ class AccountApiController extends \Phalcon\Mvc\Controller
         $email = $this->request->getPost('email');
         $fullname = $this->request->getPost('fullname');
         $gender = $this->request->getPost('gender');
+        $departmentId = $this->request->getPost('departmentId');
         $birthday = $this->request->getPost('birthday');
 
-        if (!isset($id, $username, $password, $email, $fullname, $gender, $birthday)) {
+        if (!isset($id, $username, $password, $email, $fullname, $gender, $departmentId, $birthday)) {
             echo json_encode(['success' => false, 'msg' => 'Please fill in all required fields.']);
         } else {
             $account = Account::findFirst(['id = :id:', 'bind' => ['id' => $id]]);
             if (!$account) {
-                echo json_encode(['success' => false, 'msg' => 'Account not found']);
+                echo json_encode(['success' => false, 'msg' => 'Account not found.']);
+            } else if(!Department::findFirst($departmentId)) {
+                echo json_encode(['success' => false, 'msg' => 'Department is not valid.']);
             } else {
                 $account->username = $username;
                 if (!empty($password)) $account->password = $this->security->hash($password);
                 $account->email = $email;
                 $account->fullname = $fullname;
                 $account->gender = $gender;
+                $account->departmentId = $departmentId;
                 $account->birthday = DateTime::createFromFormat("d/m/Y", $birthday)->format("Y-m-d");
                 if (!$account->update()) {
                     echo json_encode(['success' => false, 'msg' => 'Can not update account.']);

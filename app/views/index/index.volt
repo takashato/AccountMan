@@ -179,7 +179,7 @@
                         </div>
                         <div class="input-group">
                             <span class="input-group-addon"><i class="fa fa-user-secret"></i></span>
-                            <input type="text" name="id" class="form-control" id="field-id" required>
+                            <input type="text" name="id" class="form-control" id="field-id" required readonly>
                         </div>
                         <br/>
                         <div class="input-group">
@@ -296,7 +296,6 @@
 
         $(document).ready(async function () {
             let selectedCells;
-            let selectedRow;
 
             await loadDepartments();
 
@@ -340,7 +339,6 @@
                     $(this).addClass('selected');
                     selectedCells = $(this).children("td");
                 }
-                selectedRow = this;
             });
 
             /* Save new account */
@@ -400,14 +398,12 @@
                 $('#field-email').val(selectedCells.eq(2).text());
                 $('#field-fullname').val(selectedCells.eq(3).text());
                 $('#field-gender').val(selectedCells.eq(4).text() === "Male" ? 1 : 0);
-                console.log(table.row(this));
-                /*$('#department-edit-list').val(table.data(this).data).trigger('change');*/
+                $('#department-edit-list').val(table.row(selectedCells.eq(4).parent('tr')).data()[6]).trigger('change');
                 $('#field-birthday').val(selectedCells.eq(6).text());
             });
 
             $('#edit-account-form').on('submit', function () {
                 let toPost = $('#edit-account-form').serializeArray();
-                toPost.id = $("#field-id").val();
                 $.ajax({
                     method: "POST",
                     url: "api/account/edit",
